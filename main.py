@@ -28,18 +28,18 @@ def evaluate_expression():
         }
 
         result = eval(expression, {"__builtins__": None}, safe_env)
-        entry.delete(0, tl.END)
+        entry.delete(0, tk.END)
         entry.insert(tk.END, str(round(result, 6)))
     except Exception as e:
         messagebox.showerror("Calculation Error", f"Invalid input:\n{e}")
 
 # === Button Logic ===
 
-    def press(key):
-        entry.insert(tk.END, key)
+def press(key):
+    entry.insert(tk.END, key)
     
-    def clear():
-        entry.delete(0, tk.END)
+def clear():
+    entry.delete(0, tk.END)
 
 # === GUI Setup ===
 
@@ -52,5 +52,23 @@ entry.grid(row = 0, column = 0, columnspan = 5, padx = 10, pady = 10)
 
 # === Button Layout ===
 
+buttons = [
+    ['7', '8', '9', '/', 'sqrt'],
+    ['4', '5', '6', '*', 'log'],
+    ['1', '2', '3', '-', 'log10'],
+    ['0', '.', '(', ')', '+'],
+    ['C', 'pi', 'e', 'factorial', '='],
+    ['sin', 'cos', 'tan', 'pow', 'abs']
+]
 
+for i, row in enumerate(buttons):
+    for j, text in enumerate(row):
+        if text == '=':
+            action = evaluate_expression
+        elif text == 'C':
+            action = clear
+        else:
+            action = lambda k = text: press(k)
+        tk.Button(root, text=text, width=6, height=2, font=("Arial", 14), command=action).grid(row=i+1, column=j)
 
+root.mainloop()
