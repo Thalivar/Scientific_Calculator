@@ -36,7 +36,16 @@ def evaluate_expression():
 # === Button Logic ===
 
 def press(key):
-    entry.insert(tk.END, key)
+    mapping = {
+        'π': 'pi',
+        '√': 'sqrt(',
+        'ln': 'log(',
+        'log': 'log10(',
+        '!': 'factorial(',
+        '^': 'pow(',
+        '|x|': 'abs('
+    }
+    entry.insert(tk.END, mapping.get(key, key))
     
 def clear():
     entry.delete(0, tk.END)
@@ -53,12 +62,12 @@ entry.grid(row = 0, column = 0, columnspan = 5, padx = 10, pady = 10)
 # === Button Layout ===
 
 buttons = [
-    ['7', '8', '9', '/', 'sqrt'],
-    ['4', '5', '6', '*', 'log'],
-    ['1', '2', '3', '-', 'log10'],
+    ['7', '8', '9', '/', '√'],
+    ['4', '5', '6', '*', 'ln'],
+    ['1', '2', '3', '-', 'log'],
     ['0', '.', '(', ')', '+'],
-    ['C', 'pi', 'e', 'factorial', '='],
-    ['sin', 'cos', 'tan', 'pow', 'abs']
+    ['C', 'π', 'e', '!', '='],
+    ['sin', 'cos', 'tan', '^', '|x|']
 ]
 
 for i, row in enumerate(buttons):
