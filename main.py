@@ -33,12 +33,24 @@ def evaluate_expression():
     except Exception as e:
         messagebox.showerror("Calculation Error", f"Invalid input:\n{e}")
 
-    # === Button Logic ===
+# === Button Logic ===
 
     def press(key):
         entry.insert(tk.END, key)
     
-    def clear()
+    def clear():
         entry.delete(0, tk.END)
 
-        
+# === GUI Setup ===
+
+root = tk.Tk()
+root.title("Myriea's Calculator")
+root.resizable(False, False)
+
+entry = tk.Entry(root, font=("Arial", 16), width=25, borderwidth=3, relief="ridge", justify='right')
+entry.grid(row = 0, column = 0, columnspan = 5, padx = 10, pady = 10)
+
+# === Button Layout ===
+
+
+
