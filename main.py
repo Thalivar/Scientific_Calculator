@@ -66,7 +66,7 @@ def evaluate_expression():
 # === History Navigation ===
 
 def navigate_history(direction):
-    global history_index, calculation_history
+    global history_index, calculation_history, display_expr, backend_expr
 
     if not calculation_history:
         return
@@ -95,15 +95,19 @@ def navigate_history(direction):
 def handle_factorial():
     global display_expr, backend_expr
 
+    if not backend_expr or not backend_expr[-1].isdigit():
+        messagebox.showerror("Error", "Factorial requires a number")
+        return
+        
     display_expr += '!'
-    if backend_expr and backend_expr[-1].isdigit():
-        i = len(backend_expr) - 1
-        while i >= 0 and (backend_expr[i].isdigit() or backend_expr[i] == '.'):
-            i -= 1
-        number = backend_expr[i+1:]
-        backend_expr = backend_expr[:i+1] + f'factorial({number})'
-    else:
-        backend_expr += 'factorial('
+
+    i = len(backend_expr) - 1
+    while i >= 0 and (backend_expr[i].isdigit() or backend_expr[i] == '.'):
+        i -= 1
+    number = backend_expr[i+1:]
+    backend_expr = backend_expr[:i+1] + f'factorial({number})'
+    entry.delete(0, tk.END)
+    entry.insert(tk.END, display_expr)
 
 def handle_power():
     global display_expr, backend_expr
@@ -111,19 +115,22 @@ def handle_power():
     display_expr += '^'
     backend_expr += 'pow('
 
+    entry.delete(0, tk.END)
+    entry.insert(tk.END, display_expr)
+
 def press(key):
     global display_expr, backend_expr
-
-    history_index = -1
 
     symbol_map = {
         'π': ('π', 'pi'),
         '√': ('√', 'sqrt('),
         'ln': ('ln', 'log('),
         'log': ('log', 'log10('),
-        '!': ('!', 'factorial('),
-        '^': ('^', 'pow('),
         '|x|': ('|x|', 'abs('),
+        'sin': ('sin(', 'sin('),
+        'cos': ('cos(', 'cos('),
+        'tan': ('tan(', 'tan('),
+        'e': ('e', 'e'),  
     }
 
     if key == '!':
@@ -140,10 +147,6 @@ def press(key):
         display_expr += key
         backend_expr += key
 
-    display, backend = symbol_map.get(key, (key, key))
-    display_expr += display
-    backend_expr += backend
-
     entry.delete(0, tk.END)
     entry.insert(tk.END, display_expr)
     
@@ -158,14 +161,32 @@ def clear():
 def backspace():
     global display_expr, backend_expr
 
-    history_index = -1
+    if not display_expr:
+        return
+    
+    func_mapping = {
+        'sqrt(': 5,
+        'log(': 4,
+        'log10(': 6,
+        'sin(': 4,
+        'cos(': 4,
+        'tan(': 4,
+        'abs(': 4,
+        'ln(': 3
+    }
 
-    if display_expr:
-        display_expr = display_expr[:-1]
-        backend_expr = backend_expr[:-1]
+    for func, length in func_mapping.items():
+        if backend_expr.endswith(func):
+            display_expr = display_expr[:-len(func)+1]
+            backend_expr = backend_expr[:-length]
+            entry.delete(0, tk.END)
+            entry.insert(tk.END, display_expr)
+            return
         
-        entry.delete(0, tk.END)
-        entry.insert(tk.END, display_expr)
+    display_expr = display_expr[:-1]
+    backend_expr = backend_expr[:-1]
+    entry.delete(0, tk.END)
+    entry.insert(tk.END, display_expr)
 
 # === GUI Setup ===
 
