@@ -81,11 +81,22 @@ def clear():
 
     entry.delete(0, tk.END)
 
+def backspace():
+    global display_expr, backend_expr
+
+    if display_expr:
+        display_expr = display_expr[:-1]
+        backend_expr = backend_expr[:-1]
+        
+        entry.delete(0, tk.END)
+        entry.insert(tk.END, display_expr)
+
 # === GUI Setup ===
 
 root = tk.Tk()
 root.title("Myriea's Calculator")
 root.resizable(False, False)
+root.config(bg="#f0f0f0")
 
 entry = tk.Entry(root, font=("Arial", 16), width=25, borderwidth=3, relief="ridge", justify='right')
 entry.grid(row = 0, column = 0, columnspan = 5, padx = 10, pady = 10)
@@ -93,22 +104,43 @@ entry.grid(row = 0, column = 0, columnspan = 5, padx = 10, pady = 10)
 # === Button Layout ===
 
 buttons = [
-    ['7', '8', '9', '/', '√'],
-    ['4', '5', '6', '*', 'ln'],
-    ['1', '2', '3', '-', 'log'],
-    ['0', '.', '(', ')', '+'],
-    ['C', 'π', 'e', '!', '='],
-    ['sin', 'cos', 'tan', '^', '|x|']
+    ['√', 'C', '!', '^', '/'],
+    ['ln', '7', '8', '9', '*'],
+    ['log', '4', '5', '6', '-'],
+    ['(', '1', '2', '3', ')'],
+    ['π', '0', '.', '=', '+'],
+    ['sin', 'cos', 'tan', 'e', '|x|']
 ]
+
+# Color Scheme
+
+number_color = "#d9d9d9"
+operator_color = "#ffcc00"
+function_color = "#66b3ff"
+special_color = "#ff6666"
 
 for i, row in enumerate(buttons):
     for j, text in enumerate(row):
+
+        if text in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']:
+            color = number_color
+        elif text in ['+', '-', '*', '/', '^']:
+            color = operator_color
+        elif text in ['C', '=', '!']:
+            color = special_color
+        else:
+            color = function_color
+
+
         if text == '=':
             action = evaluate_expression
         elif text == 'C':
             action = clear
         else:
             action = lambda k = text: press(k)
-        tk.Button(root, text=text, width=6, height=2, font=("Arial", 14), command=action).grid(row=i+1, column=j)
+        
+        btn = tk.Button(root, text=text, width=6, height=2, font=("Arial", 12), 
+                       command=action, bg=color, relief='raised', borderwidth=1)
+        btn.grid(row=i+1, column=j, padx=1, pady=1)
 
 root.mainloop()
