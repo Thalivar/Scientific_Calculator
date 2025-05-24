@@ -2,6 +2,9 @@ import math
 import tkinter as tk
 from tkinter import messagebox
 
+display_expr = ""
+backend_expr = ""
+
 # === Math Logic ===
 
 def factorial(x):
@@ -10,8 +13,13 @@ def factorial(x):
     return math.factorial(int(x))
 
 def evaluate_expression():
+    global display_expr, backend_expr
+
     try:
-        expression = entry.get()
+        expression = backend_expr if backend_expr else entry.get()
+
+        if not expression.strip():
+            return
 
         safe_env = {
             'sqrt': math.sqrt,
@@ -23,31 +31,54 @@ def evaluate_expression():
             'pi': math.pi,
             'e': math.e,
             'abs': abs,
-            'pow': math.pow,
+            'pow': pow,
             'factorial': factorial,
         }
 
         result = eval(expression, {"__builtins__": None}, safe_env)
         entry.delete(0, tk.END)
         entry.insert(tk.END, str(round(result, 6)))
+
+        display_expr = ""
+        backend_expr = ""
+
+    except ZeroDivisionError:
+        messagebox.showerror("Calculation Error", "Division by zero is not allowed.")
+    
+    except ValueError as e:
+        messagebox.showerre("Calculation Error", f"Math error:\n{e}")
+
     except Exception as e:
-        messagebox.showerror("Calculation Error", f"Invalid input:\n{e}")
+        messagebox.showerror("Calculation Error", f"Invalid expression:\n{e}")
 
 # === Button Logic ===
 
 def press(key):
-    mapping = {
-        'π': 'pi',
-        '√': 'sqrt(',
-        'ln': 'log(',
-        'log': 'log10(',
-        '!': 'factorial(',
-        '^': 'pow(',
-        '|x|': 'abs('
+    global display_expr, backend_expr
+
+    symbol_map = {
+        'π': ('π', 'pi'),
+        '√': ('√', 'sqrt('),
+        'ln': ('ln', 'log('),
+        'log': ('log', 'log10('),
+        '!': ('!', 'factorial('),
+        '^': ('^', 'pow('),
+        '|x|': ('|x|', 'abs('),
     }
-    entry.insert(tk.END, mapping.get(key, key))
+
+    display, backend = symbol_map.get(key, (key, key))
+    display_expr += display
+    backend_expr += backend
+
+    entry.delete(0, tk.END)
+    entry.insert(tk.END, display_expr)
     
 def clear():
+    global display_expr, backend_expr
+
+    display_expr = ""
+    backend_expr = ""
+
     entry.delete(0, tk.END)
 
 # === GUI Setup ===
