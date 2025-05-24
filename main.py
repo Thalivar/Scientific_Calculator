@@ -63,10 +63,58 @@ def evaluate_expression():
     except Exception as e:
         messagebox.showerror("Calculation Error", f"Invalid expression:\n{e}")
 
+# === History Navigation ===
+
+def navigate_history(direction):
+    global history_index, calculation_history
+
+    if not calculation_history:
+        return
+    
+    if direction == 'up':
+        if history_index < len(calculation_history) - 1:
+            history_index += 1
+    elif direction == 'down':
+        if history_index > -1:
+            history_index -= 1
+    
+    if history_index >= 0:
+        calc = calculation_history[-(history_index + 1)]
+        entry.delete(0, tk.END)
+        entry.insert(tk.END, calc)
+        display_expr = calc
+        backend_expr = calc
+        
+    else:
+        entry.delete(0, tk.END)
+        display_expr = ""
+        backend_expr = ""
+
 # === Button Logic ===
+
+def handle_factorial():
+    global display_expr, backend_expr
+
+    display_expr += '!'
+    if backend_expr and backend_expr[-1].isdigit():
+        i = len(backend_expr) - 1
+        while i >= 0 and (backend_expr[i].isdigit() or backend_expr[i] == '.'):
+            i -= 1
+        number = backend_expr[i+1:]
+        backend_expr = backend_expr[:i+1] + f'factorial({number})'
+    else:
+        backend_expr += 'factorial('
+
+def handle_power():
+    global display_expr, backend_expr
+
+    display_expr += '^'
+    backend_expr += 'pow('
 
 def press(key):
     global display_expr, backend_expr
+
+    history_index = -1
 
     symbol_map = {
         'π': ('π', 'pi'),
@@ -77,6 +125,20 @@ def press(key):
         '^': ('^', 'pow('),
         '|x|': ('|x|', 'abs('),
     }
+
+    if key == '!':
+        handle_factorial()
+        return
+    elif key == '^':
+        handle_power()
+        return
+    elif key in symbol_map:
+        display, backend = symbol_map[key]
+        display_expr += display
+        backend_expr += backend
+    else:
+        display_expr += key
+        backend_expr += key
 
     display, backend = symbol_map.get(key, (key, key))
     display_expr += display
@@ -96,6 +158,8 @@ def clear():
 def backspace():
     global display_expr, backend_expr
 
+    history_index = -1
+
     if display_expr:
         display_expr = display_expr[:-1]
         backend_expr = backend_expr[:-1]
@@ -108,7 +172,7 @@ def backspace():
 root = tk.Tk()
 root.title("Myriea's Calculator")
 root.resizable(False, False)
-root.config(bg="#f0f0f0")
+root.config(bg="#3B3939")
 
 entry = tk.Entry(root, font=("Arial", 16), width=25, borderwidth=3, relief="ridge", justify='right')
 entry.grid(row = 0, column = 0, columnspan = 5, padx = 10, pady = 10)
@@ -126,10 +190,10 @@ buttons = [
 
 # === Color Scheme ===
 
-number_color = "#d9d9d9"
-operator_color = "#ffcc00"
-function_color = "#66b3ff"
-special_color = "#ff6666"
+number_color = "#c05ddf"
+operator_color = "#76488b"
+function_color = "#ad35ad"
+special_color = "#c17fca"
 
 for i, row in enumerate(buttons):
     for j, text in enumerate(row):
@@ -151,8 +215,37 @@ for i, row in enumerate(buttons):
         else:
             action = lambda k = text: press(k)
         
-        btn = tk.Button(root, text=text, width=6, height=2, font=("Arial", 12), 
+        btn = tk.Button(root, text=text, width=6, height=2, font=("Arial", 12, "bold"), 
                        command=action, bg=color, relief='raised', borderwidth=1)
         btn.grid(row=i+1, column=j, padx=1, pady=1)
+
+# === Keyboard Event Handling ===
+
+def on_key_press(event):
+    key = event.keysym
+    char = event.char
+    
+    # Handle arrow keys for history navigation
+    if key == 'Up':
+        navigate_history("up")
+        return "break"
+    elif key == 'Down':
+        navigate_history("down")
+        return "break"
+    elif key == 'Return':
+        evaluate_expression()
+        return "break"
+    elif key == 'BackSpace':
+        backspace()
+        return "break"
+    elif char and (char.isdigit() or char in '+-*/.()'):
+        press(char)
+        return "break"
+    elif char.lower() == 'c':
+        clear()
+        return "break"
+
+entry.bind('<KeyPress>', on_key_press)
+entry.focus()
 
 root.mainloop()
