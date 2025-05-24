@@ -2,8 +2,13 @@ import math
 import tkinter as tk
 from tkinter import messagebox
 
+# === Constants ===
+
 display_expr = ""
 backend_expr = ""
+
+calculation_history = []
+history_index = -1
 
 # === Math Logic ===
 
@@ -13,7 +18,7 @@ def factorial(x):
     return math.factorial(int(x))
 
 def evaluate_expression():
-    global display_expr, backend_expr
+    global display_expr, backend_expr, calculation_history, history_index
 
     try:
         expression = backend_expr if backend_expr else entry.get()
@@ -39,6 +44,13 @@ def evaluate_expression():
         entry.delete(0, tk.END)
         entry.insert(tk.END, str(round(result, 6)))
 
+        calculation_entry = f"{display_expr if display_expr else expression} = {result}"
+        calculation_history.append(calculation_entry)
+        if len(calculation_history) > 10:
+            calculation_history.pop(0)
+        
+        history_index = -1
+
         display_expr = ""
         backend_expr = ""
 
@@ -46,7 +58,7 @@ def evaluate_expression():
         messagebox.showerror("Calculation Error", "Division by zero is not allowed.")
     
     except ValueError as e:
-        messagebox.showerre("Calculation Error", f"Math error:\n{e}")
+        messagebox.showerror("Calculation Error", f"Math error:\n{e}")
 
     except Exception as e:
         messagebox.showerror("Calculation Error", f"Invalid expression:\n{e}")
@@ -112,7 +124,7 @@ buttons = [
     ['sin', 'cos', 'tan', 'e', '|x|']
 ]
 
-# Color Scheme
+# === Color Scheme ===
 
 number_color = "#d9d9d9"
 operator_color = "#ffcc00"
