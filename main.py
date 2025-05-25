@@ -10,6 +10,9 @@ backend_expr = ""
 calculation_history = []
 history_index = -1
 
+angle_mode = "deg"
+memory_value = 0
+
 # === Math Logic ===
 
 def factorial(x):
@@ -20,6 +23,9 @@ def factorial(x):
 def evaluate_expression():
     global display_expr, backend_expr, calculation_history, history_index
 
+    if not backend_expr.strip():
+        return
+
     try:
         expression = backend_expr if backend_expr else entry.get()
 
@@ -28,9 +34,9 @@ def evaluate_expression():
 
         safe_env = {
             'sqrt': math.sqrt,
-            'sin': math.sin,
-            'cos': math.cos,
-            'tan': math.tan,
+            'sin': lambda x: math.sin(math.radians(x)) if angle_mode == 'deg' else math.sin(x),
+            'cos': lambda x: math.cos(math.radians(x)) if angle_mode == 'deg' else math.cos(x),
+            'tan': lambda x: math.tan(math.radians(x)) if angle_mode == 'deg' else math.tan(x),
             'log': math.log,
             'log10': math.log10,
             'pi': math.pi,
@@ -54,14 +60,18 @@ def evaluate_expression():
         display_expr = ""
         backend_expr = ""
 
-    except ZeroDivisionError:
-        messagebox.showerror("Calculation Error", "Division by zero is not allowed.")
-    
-    except ValueError as e:
-        messagebox.showerror("Calculation Error", f"Math error:\n{e}")
-
     except Exception as e:
-        messagebox.showerror("Calculation Error", f"Invalid expression:\n{e}")
+        handle_error(e)
+
+
+def handle_error(e):
+    
+    if isinstance(e, ValueError):
+        messagebox.showerror("Error", f"Math Error: {str(e)}")
+    elif isinstance(e, ZeroDivisionError):
+        messagebox.showerror("Error", "Math Error: Division by zero")
+    else:
+        messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
 # === History Navigation ===
 
@@ -120,6 +130,10 @@ def handle_power():
 
 def press(key):
     global display_expr, backend_expr
+
+    if key == '(' and backend_expr.count('(') <= backend_expr.count(')'):
+        messagebox.showarning("Parentheses", "No opening parenthesis to close")
+        return
 
     symbol_map = {
         'π': ('π', 'pi'),
@@ -188,6 +202,12 @@ def backspace():
     entry.delete(0, tk.END)
     entry.insert(tk.END, display_expr)
 
+def toggle_angle_mode():
+    global angle_mode
+    
+    angle_mode = 'rad' if angle_mode == 'deg' else 'deg'
+    mode_btn.config(text=f"Mode: {angle_mode.upper()}")
+
 # === GUI Setup ===
 
 root = tk.Tk()
@@ -240,6 +260,9 @@ for i, row in enumerate(buttons):
                        command=action, bg=color, relief='raised', borderwidth=1)
         btn.grid(row=i+1, column=j, padx=1, pady=1)
 
+mode_btn = tk.Button(root, text=f"Mode: {angle_mode.upper()}", command=toggle_angle_mode, bg="#5D3FD3")
+mode_btn.grid(row=0, column=5, padx=5)
+
 # === Keyboard Event Handling ===
 
 def on_key_press(event):
@@ -250,7 +273,6 @@ def on_key_press(event):
         'Up': 'up',
         'Down': 'down',
         'Return': '=',
-        'BackSpace': '⌫',
         'Escape': 'C',
         'plus': '+',
         'minus': '-',
@@ -262,7 +284,6 @@ def on_key_press(event):
         'exclam': '!'
     }
     
-    # Handle arrow keys for history navigation
     if key in key_mapping:
         if key == 'Up':
             navigate_history('up')
@@ -270,8 +291,6 @@ def on_key_press(event):
             navigate_history('down')
         elif key == '=':
             evaluate_expression()
-        elif key == '⌫':
-            backspace()
         elif key == 'C':
             clear()
         else:
