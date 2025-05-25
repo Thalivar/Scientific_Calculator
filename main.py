@@ -245,26 +245,43 @@ for i, row in enumerate(buttons):
 def on_key_press(event):
     key = event.keysym
     char = event.char
+
+    key_mapping = {
+        'Up': 'up',
+        'Down': 'down',
+        'Return': '=',
+        'BackSpace': '⌫',
+        'Escape': 'C',
+        'plus': '+',
+        'minus': '-',
+        'asterisk': '*',
+        'slash': '/',
+        'parenleft': '(',
+        'parenright': ')',
+        'asciicircum': '^',
+        'exclam': '!'
+    }
     
     # Handle arrow keys for history navigation
-    if key == 'Up':
-        navigate_history("up")
-        return "break"
-    elif key == 'Down':
-        navigate_history("down")
-        return "break"
-    elif key == 'Return':
-        evaluate_expression()
-        return "break"
-    elif key == 'BackSpace':
-        backspace()
-        return "break"
-    elif char and (char.isdigit() or char in '+-*/.()'):
+    if key in key_mapping:
+        if key == 'Up':
+            navigate_history('up')
+        elif key == 'Down':
+            navigate_history('down')
+        elif key == '=':
+            evaluate_expression()
+        elif key == '⌫':
+            backspace()
+        elif key == 'C':
+            clear()
+        else:
+            press(key_mapping[key])
+    
+    if char and (char.isdigit() or char in '+-*/.()^!'):
         press(char)
         return "break"
-    elif char.lower() == 'c':
-        clear()
-        return "break"
+    
+    return None
 
 entry.bind('<KeyPress>', on_key_press)
 entry.focus()
